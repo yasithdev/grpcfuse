@@ -2,13 +2,11 @@ package main
 
 import (
 	"context"
-	"flag"
 	"grpcfs/pb"
 	"log"
 	"net"
 	"os"
 	"os/signal"
-	"path/filepath"
 
 	"google.golang.org/grpc"
 )
@@ -55,18 +53,7 @@ func (s *server) ReadFile(ctx context.Context, req *pb.ReadFileReq) (*pb.ReadFil
 
 func main() {
 
-	var servePath string
-	flag.StringVar(&servePath, "serve", "", "Path to serve")
-	flag.Parse()
-
-	if servePath == "" {
-		logger.Fatal("Please specify which path to serve")
-	}
-
-	servePath, err := filepath.Abs(servePath)
-	handleErrIfAny(err, "Invalid serve path")
-
-	listener, err := net.Listen("tcp", ":8080")
+	listener, err := net.Listen("tcp", "127.0.0.1:50000")
 	handleErrIfAny(err, "Could not start GRPC server")
 
 	s := grpc.NewServer()

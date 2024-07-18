@@ -4,7 +4,13 @@ init:
 	rm -rf ./bin && mkdir ./bin
 
 client:
-	cd grpcfs_client && go mod tidy && go build -o ../bin .
+	cd src/grpcfs_client && go mod tidy && go build -o ../../bin .
 
 server:
-	cd grpcfs_server && go mod tidy && go build -o ../bin .
+	cd src/grpcfs_server && go mod tidy && go build -o ../../bin .
+
+run_server:
+	bin/server
+
+run_client:
+	bin/client -mount tmp/ -serve data/
