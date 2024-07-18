@@ -19,550 +19,284 @@ import (
 const _ = grpc.SupportPackageIsVersion8
 
 const (
-	GrpcFuse_StatFs_FullMethodName             = "/pb.GrpcFuse/StatFs"
-	GrpcFuse_LookUpInode_FullMethodName        = "/pb.GrpcFuse/LookUpInode"
-	GrpcFuse_GetInodeAttributes_FullMethodName = "/pb.GrpcFuse/GetInodeAttributes"
-	GrpcFuse_OpenDir_FullMethodName            = "/pb.GrpcFuse/OpenDir"
-	GrpcFuse_ReadDir_FullMethodName            = "/pb.GrpcFuse/ReadDir"
-	GrpcFuse_OpenFile_FullMethodName           = "/pb.GrpcFuse/OpenFile"
-	GrpcFuse_ReadFile_FullMethodName           = "/pb.GrpcFuse/ReadFile"
-	GrpcFuse_ReleaseDirHandle_FullMethodName   = "/pb.GrpcFuse/ReleaseDirHandle"
-	GrpcFuse_GetXattr_FullMethodName           = "/pb.GrpcFuse/GetXattr"
-	GrpcFuse_ListXattr_FullMethodName          = "/pb.GrpcFuse/ListXattr"
-	GrpcFuse_ForgetInode_FullMethodName        = "/pb.GrpcFuse/ForgetInode"
-	GrpcFuse_ReleaseFileHandle_FullMethodName  = "/pb.GrpcFuse/ReleaseFileHandle"
-	GrpcFuse_FlushFile_FullMethodName          = "/pb.GrpcFuse/FlushFile"
+	FuseService_StatFs_FullMethodName   = "/pb.FuseService/StatFs"
+	FuseService_FileInfo_FullMethodName = "/pb.FuseService/FileInfo"
+	FuseService_OpenDir_FullMethodName  = "/pb.FuseService/OpenDir"
+	FuseService_OpenFile_FullMethodName = "/pb.FuseService/OpenFile"
+	FuseService_ReadDir_FullMethodName  = "/pb.FuseService/ReadDir"
+	FuseService_ReadFile_FullMethodName = "/pb.FuseService/ReadFile"
 )
 
-// GrpcFuseClient is the client API for GrpcFuse service.
+// FuseServiceClient is the client API for FuseService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
 // Service Definition
-type GrpcFuseClient interface {
+type FuseServiceClient interface {
 	StatFs(ctx context.Context, in *StatFsReq, opts ...grpc.CallOption) (*StatFsRes, error)
-	LookUpInode(ctx context.Context, in *LookUpInodeReq, opts ...grpc.CallOption) (*LookupInodeRes, error)
-	GetInodeAttributes(ctx context.Context, in *GetInodeAttributesReq, opts ...grpc.CallOption) (*GetInodeAttributesRes, error)
+	FileInfo(ctx context.Context, in *FileInfoReq, opts ...grpc.CallOption) (*FileInfoRes, error)
 	OpenDir(ctx context.Context, in *OpenDirReq, opts ...grpc.CallOption) (*OpenDirRes, error)
-	ReadDir(ctx context.Context, in *ReadDirReq, opts ...grpc.CallOption) (*ReadDirRes, error)
 	OpenFile(ctx context.Context, in *OpenFileReq, opts ...grpc.CallOption) (*OpenFileRes, error)
+	ReadDir(ctx context.Context, in *ReadDirReq, opts ...grpc.CallOption) (*ReadDirRes, error)
 	ReadFile(ctx context.Context, in *ReadFileReq, opts ...grpc.CallOption) (*ReadFileRes, error)
-	ReleaseDirHandle(ctx context.Context, in *ReleaseDirHandleReq, opts ...grpc.CallOption) (*ReleaseDirHandleRes, error)
-	GetXattr(ctx context.Context, in *GetXattrReq, opts ...grpc.CallOption) (*GetXattrRes, error)
-	ListXattr(ctx context.Context, in *ListXattrReq, opts ...grpc.CallOption) (*ListXattrRes, error)
-	ForgetInode(ctx context.Context, in *ForgetInodeReq, opts ...grpc.CallOption) (*ForgetInodeRes, error)
-	ReleaseFileHandle(ctx context.Context, in *ReleaseFileHandleReq, opts ...grpc.CallOption) (*ReleaseFileHandleRes, error)
-	FlushFile(ctx context.Context, in *FlushFileReq, opts ...grpc.CallOption) (*FlushFileRes, error)
 }
 
-type grpcFuseClient struct {
+type fuseServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewGrpcFuseClient(cc grpc.ClientConnInterface) GrpcFuseClient {
-	return &grpcFuseClient{cc}
+func NewFuseServiceClient(cc grpc.ClientConnInterface) FuseServiceClient {
+	return &fuseServiceClient{cc}
 }
 
-func (c *grpcFuseClient) StatFs(ctx context.Context, in *StatFsReq, opts ...grpc.CallOption) (*StatFsRes, error) {
+func (c *fuseServiceClient) StatFs(ctx context.Context, in *StatFsReq, opts ...grpc.CallOption) (*StatFsRes, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(StatFsRes)
-	err := c.cc.Invoke(ctx, GrpcFuse_StatFs_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, FuseService_StatFs_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *grpcFuseClient) LookUpInode(ctx context.Context, in *LookUpInodeReq, opts ...grpc.CallOption) (*LookupInodeRes, error) {
+func (c *fuseServiceClient) FileInfo(ctx context.Context, in *FileInfoReq, opts ...grpc.CallOption) (*FileInfoRes, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(LookupInodeRes)
-	err := c.cc.Invoke(ctx, GrpcFuse_LookUpInode_FullMethodName, in, out, cOpts...)
+	out := new(FileInfoRes)
+	err := c.cc.Invoke(ctx, FuseService_FileInfo_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *grpcFuseClient) GetInodeAttributes(ctx context.Context, in *GetInodeAttributesReq, opts ...grpc.CallOption) (*GetInodeAttributesRes, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetInodeAttributesRes)
-	err := c.cc.Invoke(ctx, GrpcFuse_GetInodeAttributes_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *grpcFuseClient) OpenDir(ctx context.Context, in *OpenDirReq, opts ...grpc.CallOption) (*OpenDirRes, error) {
+func (c *fuseServiceClient) OpenDir(ctx context.Context, in *OpenDirReq, opts ...grpc.CallOption) (*OpenDirRes, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(OpenDirRes)
-	err := c.cc.Invoke(ctx, GrpcFuse_OpenDir_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, FuseService_OpenDir_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *grpcFuseClient) ReadDir(ctx context.Context, in *ReadDirReq, opts ...grpc.CallOption) (*ReadDirRes, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ReadDirRes)
-	err := c.cc.Invoke(ctx, GrpcFuse_ReadDir_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *grpcFuseClient) OpenFile(ctx context.Context, in *OpenFileReq, opts ...grpc.CallOption) (*OpenFileRes, error) {
+func (c *fuseServiceClient) OpenFile(ctx context.Context, in *OpenFileReq, opts ...grpc.CallOption) (*OpenFileRes, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(OpenFileRes)
-	err := c.cc.Invoke(ctx, GrpcFuse_OpenFile_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, FuseService_OpenFile_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *grpcFuseClient) ReadFile(ctx context.Context, in *ReadFileReq, opts ...grpc.CallOption) (*ReadFileRes, error) {
+func (c *fuseServiceClient) ReadDir(ctx context.Context, in *ReadDirReq, opts ...grpc.CallOption) (*ReadDirRes, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ReadDirRes)
+	err := c.cc.Invoke(ctx, FuseService_ReadDir_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fuseServiceClient) ReadFile(ctx context.Context, in *ReadFileReq, opts ...grpc.CallOption) (*ReadFileRes, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ReadFileRes)
-	err := c.cc.Invoke(ctx, GrpcFuse_ReadFile_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, FuseService_ReadFile_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *grpcFuseClient) ReleaseDirHandle(ctx context.Context, in *ReleaseDirHandleReq, opts ...grpc.CallOption) (*ReleaseDirHandleRes, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ReleaseDirHandleRes)
-	err := c.cc.Invoke(ctx, GrpcFuse_ReleaseDirHandle_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *grpcFuseClient) GetXattr(ctx context.Context, in *GetXattrReq, opts ...grpc.CallOption) (*GetXattrRes, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetXattrRes)
-	err := c.cc.Invoke(ctx, GrpcFuse_GetXattr_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *grpcFuseClient) ListXattr(ctx context.Context, in *ListXattrReq, opts ...grpc.CallOption) (*ListXattrRes, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListXattrRes)
-	err := c.cc.Invoke(ctx, GrpcFuse_ListXattr_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *grpcFuseClient) ForgetInode(ctx context.Context, in *ForgetInodeReq, opts ...grpc.CallOption) (*ForgetInodeRes, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ForgetInodeRes)
-	err := c.cc.Invoke(ctx, GrpcFuse_ForgetInode_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *grpcFuseClient) ReleaseFileHandle(ctx context.Context, in *ReleaseFileHandleReq, opts ...grpc.CallOption) (*ReleaseFileHandleRes, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ReleaseFileHandleRes)
-	err := c.cc.Invoke(ctx, GrpcFuse_ReleaseFileHandle_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *grpcFuseClient) FlushFile(ctx context.Context, in *FlushFileReq, opts ...grpc.CallOption) (*FlushFileRes, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(FlushFileRes)
-	err := c.cc.Invoke(ctx, GrpcFuse_FlushFile_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// GrpcFuseServer is the server API for GrpcFuse service.
-// All implementations must embed UnimplementedGrpcFuseServer
+// FuseServiceServer is the server API for FuseService service.
+// All implementations must embed UnimplementedFuseServiceServer
 // for forward compatibility
 //
 // Service Definition
-type GrpcFuseServer interface {
+type FuseServiceServer interface {
 	StatFs(context.Context, *StatFsReq) (*StatFsRes, error)
-	LookUpInode(context.Context, *LookUpInodeReq) (*LookupInodeRes, error)
-	GetInodeAttributes(context.Context, *GetInodeAttributesReq) (*GetInodeAttributesRes, error)
+	FileInfo(context.Context, *FileInfoReq) (*FileInfoRes, error)
 	OpenDir(context.Context, *OpenDirReq) (*OpenDirRes, error)
-	ReadDir(context.Context, *ReadDirReq) (*ReadDirRes, error)
 	OpenFile(context.Context, *OpenFileReq) (*OpenFileRes, error)
+	ReadDir(context.Context, *ReadDirReq) (*ReadDirRes, error)
 	ReadFile(context.Context, *ReadFileReq) (*ReadFileRes, error)
-	ReleaseDirHandle(context.Context, *ReleaseDirHandleReq) (*ReleaseDirHandleRes, error)
-	GetXattr(context.Context, *GetXattrReq) (*GetXattrRes, error)
-	ListXattr(context.Context, *ListXattrReq) (*ListXattrRes, error)
-	ForgetInode(context.Context, *ForgetInodeReq) (*ForgetInodeRes, error)
-	ReleaseFileHandle(context.Context, *ReleaseFileHandleReq) (*ReleaseFileHandleRes, error)
-	FlushFile(context.Context, *FlushFileReq) (*FlushFileRes, error)
-	mustEmbedUnimplementedGrpcFuseServer()
+	mustEmbedUnimplementedFuseServiceServer()
 }
 
-// UnimplementedGrpcFuseServer must be embedded to have forward compatible implementations.
-type UnimplementedGrpcFuseServer struct {
+// UnimplementedFuseServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedFuseServiceServer struct {
 }
 
-func (UnimplementedGrpcFuseServer) StatFs(context.Context, *StatFsReq) (*StatFsRes, error) {
+func (UnimplementedFuseServiceServer) StatFs(context.Context, *StatFsReq) (*StatFsRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StatFs not implemented")
 }
-func (UnimplementedGrpcFuseServer) LookUpInode(context.Context, *LookUpInodeReq) (*LookupInodeRes, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method LookUpInode not implemented")
+func (UnimplementedFuseServiceServer) FileInfo(context.Context, *FileInfoReq) (*FileInfoRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FileInfo not implemented")
 }
-func (UnimplementedGrpcFuseServer) GetInodeAttributes(context.Context, *GetInodeAttributesReq) (*GetInodeAttributesRes, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetInodeAttributes not implemented")
-}
-func (UnimplementedGrpcFuseServer) OpenDir(context.Context, *OpenDirReq) (*OpenDirRes, error) {
+func (UnimplementedFuseServiceServer) OpenDir(context.Context, *OpenDirReq) (*OpenDirRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method OpenDir not implemented")
 }
-func (UnimplementedGrpcFuseServer) ReadDir(context.Context, *ReadDirReq) (*ReadDirRes, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ReadDir not implemented")
-}
-func (UnimplementedGrpcFuseServer) OpenFile(context.Context, *OpenFileReq) (*OpenFileRes, error) {
+func (UnimplementedFuseServiceServer) OpenFile(context.Context, *OpenFileReq) (*OpenFileRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method OpenFile not implemented")
 }
-func (UnimplementedGrpcFuseServer) ReadFile(context.Context, *ReadFileReq) (*ReadFileRes, error) {
+func (UnimplementedFuseServiceServer) ReadDir(context.Context, *ReadDirReq) (*ReadDirRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReadDir not implemented")
+}
+func (UnimplementedFuseServiceServer) ReadFile(context.Context, *ReadFileReq) (*ReadFileRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReadFile not implemented")
 }
-func (UnimplementedGrpcFuseServer) ReleaseDirHandle(context.Context, *ReleaseDirHandleReq) (*ReleaseDirHandleRes, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ReleaseDirHandle not implemented")
-}
-func (UnimplementedGrpcFuseServer) GetXattr(context.Context, *GetXattrReq) (*GetXattrRes, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetXattr not implemented")
-}
-func (UnimplementedGrpcFuseServer) ListXattr(context.Context, *ListXattrReq) (*ListXattrRes, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListXattr not implemented")
-}
-func (UnimplementedGrpcFuseServer) ForgetInode(context.Context, *ForgetInodeReq) (*ForgetInodeRes, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ForgetInode not implemented")
-}
-func (UnimplementedGrpcFuseServer) ReleaseFileHandle(context.Context, *ReleaseFileHandleReq) (*ReleaseFileHandleRes, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ReleaseFileHandle not implemented")
-}
-func (UnimplementedGrpcFuseServer) FlushFile(context.Context, *FlushFileReq) (*FlushFileRes, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method FlushFile not implemented")
-}
-func (UnimplementedGrpcFuseServer) mustEmbedUnimplementedGrpcFuseServer() {}
+func (UnimplementedFuseServiceServer) mustEmbedUnimplementedFuseServiceServer() {}
 
-// UnsafeGrpcFuseServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to GrpcFuseServer will
+// UnsafeFuseServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to FuseServiceServer will
 // result in compilation errors.
-type UnsafeGrpcFuseServer interface {
-	mustEmbedUnimplementedGrpcFuseServer()
+type UnsafeFuseServiceServer interface {
+	mustEmbedUnimplementedFuseServiceServer()
 }
 
-func RegisterGrpcFuseServer(s grpc.ServiceRegistrar, srv GrpcFuseServer) {
-	s.RegisterService(&GrpcFuse_ServiceDesc, srv)
+func RegisterFuseServiceServer(s grpc.ServiceRegistrar, srv FuseServiceServer) {
+	s.RegisterService(&FuseService_ServiceDesc, srv)
 }
 
-func _GrpcFuse_StatFs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FuseService_StatFs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(StatFsReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GrpcFuseServer).StatFs(ctx, in)
+		return srv.(FuseServiceServer).StatFs(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: GrpcFuse_StatFs_FullMethodName,
+		FullMethod: FuseService_StatFs_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GrpcFuseServer).StatFs(ctx, req.(*StatFsReq))
+		return srv.(FuseServiceServer).StatFs(ctx, req.(*StatFsReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _GrpcFuse_LookUpInode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LookUpInodeReq)
+func _FuseService_FileInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FileInfoReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GrpcFuseServer).LookUpInode(ctx, in)
+		return srv.(FuseServiceServer).FileInfo(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: GrpcFuse_LookUpInode_FullMethodName,
+		FullMethod: FuseService_FileInfo_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GrpcFuseServer).LookUpInode(ctx, req.(*LookUpInodeReq))
+		return srv.(FuseServiceServer).FileInfo(ctx, req.(*FileInfoReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _GrpcFuse_GetInodeAttributes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetInodeAttributesReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GrpcFuseServer).GetInodeAttributes(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GrpcFuse_GetInodeAttributes_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GrpcFuseServer).GetInodeAttributes(ctx, req.(*GetInodeAttributesReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GrpcFuse_OpenDir_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FuseService_OpenDir_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(OpenDirReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GrpcFuseServer).OpenDir(ctx, in)
+		return srv.(FuseServiceServer).OpenDir(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: GrpcFuse_OpenDir_FullMethodName,
+		FullMethod: FuseService_OpenDir_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GrpcFuseServer).OpenDir(ctx, req.(*OpenDirReq))
+		return srv.(FuseServiceServer).OpenDir(ctx, req.(*OpenDirReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _GrpcFuse_ReadDir_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ReadDirReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GrpcFuseServer).ReadDir(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GrpcFuse_ReadDir_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GrpcFuseServer).ReadDir(ctx, req.(*ReadDirReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GrpcFuse_OpenFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FuseService_OpenFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(OpenFileReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GrpcFuseServer).OpenFile(ctx, in)
+		return srv.(FuseServiceServer).OpenFile(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: GrpcFuse_OpenFile_FullMethodName,
+		FullMethod: FuseService_OpenFile_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GrpcFuseServer).OpenFile(ctx, req.(*OpenFileReq))
+		return srv.(FuseServiceServer).OpenFile(ctx, req.(*OpenFileReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _GrpcFuse_ReadFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FuseService_ReadDir_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReadDirReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FuseServiceServer).ReadDir(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FuseService_ReadDir_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FuseServiceServer).ReadDir(ctx, req.(*ReadDirReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FuseService_ReadFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ReadFileReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GrpcFuseServer).ReadFile(ctx, in)
+		return srv.(FuseServiceServer).ReadFile(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: GrpcFuse_ReadFile_FullMethodName,
+		FullMethod: FuseService_ReadFile_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GrpcFuseServer).ReadFile(ctx, req.(*ReadFileReq))
+		return srv.(FuseServiceServer).ReadFile(ctx, req.(*ReadFileReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _GrpcFuse_ReleaseDirHandle_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ReleaseDirHandleReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GrpcFuseServer).ReleaseDirHandle(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GrpcFuse_ReleaseDirHandle_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GrpcFuseServer).ReleaseDirHandle(ctx, req.(*ReleaseDirHandleReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GrpcFuse_GetXattr_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetXattrReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GrpcFuseServer).GetXattr(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GrpcFuse_GetXattr_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GrpcFuseServer).GetXattr(ctx, req.(*GetXattrReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GrpcFuse_ListXattr_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListXattrReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GrpcFuseServer).ListXattr(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GrpcFuse_ListXattr_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GrpcFuseServer).ListXattr(ctx, req.(*ListXattrReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GrpcFuse_ForgetInode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ForgetInodeReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GrpcFuseServer).ForgetInode(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GrpcFuse_ForgetInode_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GrpcFuseServer).ForgetInode(ctx, req.(*ForgetInodeReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GrpcFuse_ReleaseFileHandle_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ReleaseFileHandleReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GrpcFuseServer).ReleaseFileHandle(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GrpcFuse_ReleaseFileHandle_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GrpcFuseServer).ReleaseFileHandle(ctx, req.(*ReleaseFileHandleReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GrpcFuse_FlushFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(FlushFileReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GrpcFuseServer).FlushFile(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GrpcFuse_FlushFile_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GrpcFuseServer).FlushFile(ctx, req.(*FlushFileReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-// GrpcFuse_ServiceDesc is the grpc.ServiceDesc for GrpcFuse service.
+// FuseService_ServiceDesc is the grpc.ServiceDesc for FuseService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var GrpcFuse_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "pb.GrpcFuse",
-	HandlerType: (*GrpcFuseServer)(nil),
+var FuseService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "pb.FuseService",
+	HandlerType: (*FuseServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "StatFs",
-			Handler:    _GrpcFuse_StatFs_Handler,
+			Handler:    _FuseService_StatFs_Handler,
 		},
 		{
-			MethodName: "LookUpInode",
-			Handler:    _GrpcFuse_LookUpInode_Handler,
-		},
-		{
-			MethodName: "GetInodeAttributes",
-			Handler:    _GrpcFuse_GetInodeAttributes_Handler,
+			MethodName: "FileInfo",
+			Handler:    _FuseService_FileInfo_Handler,
 		},
 		{
 			MethodName: "OpenDir",
-			Handler:    _GrpcFuse_OpenDir_Handler,
-		},
-		{
-			MethodName: "ReadDir",
-			Handler:    _GrpcFuse_ReadDir_Handler,
+			Handler:    _FuseService_OpenDir_Handler,
 		},
 		{
 			MethodName: "OpenFile",
-			Handler:    _GrpcFuse_OpenFile_Handler,
+			Handler:    _FuseService_OpenFile_Handler,
+		},
+		{
+			MethodName: "ReadDir",
+			Handler:    _FuseService_ReadDir_Handler,
 		},
 		{
 			MethodName: "ReadFile",
-			Handler:    _GrpcFuse_ReadFile_Handler,
-		},
-		{
-			MethodName: "ReleaseDirHandle",
-			Handler:    _GrpcFuse_ReleaseDirHandle_Handler,
-		},
-		{
-			MethodName: "GetXattr",
-			Handler:    _GrpcFuse_GetXattr_Handler,
-		},
-		{
-			MethodName: "ListXattr",
-			Handler:    _GrpcFuse_ListXattr_Handler,
-		},
-		{
-			MethodName: "ForgetInode",
-			Handler:    _GrpcFuse_ForgetInode_Handler,
-		},
-		{
-			MethodName: "ReleaseFileHandle",
-			Handler:    _GrpcFuse_ReleaseFileHandle_Handler,
-		},
-		{
-			MethodName: "FlushFile",
-			Handler:    _GrpcFuse_FlushFile_Handler,
+			Handler:    _FuseService_ReadFile_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -43,7 +43,7 @@ func main() {
 	servePath, err = filepath.Abs(servePath)
 	handleErrIfAny(err, "Invalid serve path")
 
-	server, err := grpcfs.GrpcFsServer(servePath, logger)
+	server, err := grpcfs.FuseServer("127.0.0.1:50000", servePath, logger)
 	handleErrIfAny(err, "Error in fs server")
 
 	cfg := &fuse.MountConfig{

@@ -12,6 +12,8 @@ import (
 	"github.com/jacobsa/fuse"
 	"github.com/jacobsa/fuse/fuseops"
 	"github.com/jacobsa/fuse/fuseutil"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type grpcFs struct {
@@ -19,16 +21,23 @@ type grpcFs struct {
 	root   string
 	inodes *sync.Map
 	logger *log.Logger
-	client pb.GrpcFuseClient
+	client pb.FuseServiceClient
 }
 
 var _ fuseutil.FileSystem = &grpcFs{}
 
 // Create a file system that mirrors an existing physical path, in a readonly mode
-func GrpcFsServer(
+func FuseServer(
+	grpcHost string,
 	root string,
-	client pb.GrpcFuseClient,
 	logger *log.Logger) (server fuse.Server, err error) {
+
+	creds := insecure.NewCredentials()
+	conn, err := grpc.NewClient(grpcHost, grpc.WithTransportCredentials(creds))
+	if err != nil {
+		return nil, err
+	}
+	client := pb.NewFuseServiceClient(conn)
 
 	if _, err = getStat(client, context.TODO(), root); err != nil {
 		return nil, err
@@ -57,17 +66,13 @@ func (fs *grpcFs) StatFS(
 	if err != nil {
 		return err
 	}
-	result := res.Result
-	if result == nil {
-		return ctx.Err()
-	}
-	op.BlockSize = result.BlockSize
-	op.Blocks = result.Blocks
-	op.BlocksAvailable = result.BlocksAvailable
-	op.BlocksFree = result.BlocksFree
-	op.Inodes = result.Inodes
-	op.InodesFree = result.InodesFree
-	op.IoSize = result.IoSize
+	op.BlockSize = res.BlockSize
+	op.Blocks = res.Blocks
+	op.BlocksAvailable = res.BlocksAvailable
+	op.BlocksFree = res.BlocksFree
+	op.Inodes = res.Inodes
+	op.InodesFree = res.InodesFree
+	op.IoSize = res.IoSize
 	return nil
 }
 

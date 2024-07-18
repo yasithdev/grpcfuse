@@ -31,7 +31,7 @@ type Inode interface {
 	Contents(ctx context.Context) ([]byte, error)
 }
 
-func getOrCreateInode(inodes *sync.Map, fsClient pb.GrpcFuseClient, ctx context.Context, parentId fuseops.InodeID, name string) (Inode, error) {
+func getOrCreateInode(inodes *sync.Map, fsClient pb.FuseServiceClient, ctx context.Context, parentId fuseops.InodeID, name string) (Inode, error) {
 	parent, found := inodes.Load(parentId)
 	if !found {
 		return nil, nil
@@ -61,12 +61,12 @@ func nextInodeID() (next fuseops.InodeID) {
 type inodeEntry struct {
 	id     fuseops.InodeID
 	path   string
-	client pb.GrpcFuseClient
+	client pb.FuseServiceClient
 }
 
 var _ Inode = &inodeEntry{}
 
-func NewInode(path string, client pb.GrpcFuseClient) (Inode, error) {
+func NewInode(path string, client pb.FuseServiceClient) (Inode, error) {
 	return &inodeEntry{
 		id:     nextInodeID(),
 		path:   path,
