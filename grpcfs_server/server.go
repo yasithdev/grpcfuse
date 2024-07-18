@@ -1,13 +1,15 @@
-// place for fuse definitions
+// this file implements fuse -> grpc invocations
 
 package grpcfs
 
 import (
-	"context"
 	"log"
+	"os"
 	"sync"
 
-	pb "grpcfs/pb"
+	"context"
+
+	"grpcfs/pb"
 
 	"github.com/jacobsa/fuse"
 	"github.com/jacobsa/fuse/fuseops"
@@ -25,21 +27,18 @@ type grpcFs struct {
 var _ fuseutil.FileSystem = &grpcFs{}
 
 // Create a file system that mirrors an existing physical path, in a readonly mode
-func GrpcFsServer(
-	root string,
-	client pb.GrpcFuseClient,
-	logger *log.Logger) (server fuse.Server, err error) {
+func GrpcFsServer(root string, client pb.GrpcFuseClient, logger *log.Logger) (server fuse.Server, err error) {
 
-	if _, err = getStat(client, context.TODO(), root); err != nil {
+	if _, err = os.Stat(root); err != nil {
 		return nil, err
 	}
 
 	inodes := &sync.Map{}
-	rootInode := &inodeEntry{
+	root := &inodeEntry{
 		id:   fuseops.RootInodeID,
 		path: root,
 	}
-	inodes.Store(rootInode.Id(), root)
+	inodes.Store(root.Id(), root)
 	server = fuseutil.NewFileSystemServer(&grpcFs{
 		root:   root,
 		inodes: inodes,
@@ -52,29 +51,13 @@ func GrpcFsServer(
 func (fs *grpcFs) StatFS(
 	ctx context.Context,
 	op *fuseops.StatFSOp) error {
-
-	res, err := getStatFs(fs.client, ctx, fs.root)
-	if err != nil {
-		return err
-	}
-	result := res.Result
-	if result == nil {
-		return ctx.Err()
-	}
-	op.BlockSize = result.BlockSize
-	op.Blocks = result.Blocks
-	op.BlocksAvailable = result.BlocksAvailable
-	op.BlocksFree = result.BlocksFree
-	op.Inodes = result.Inodes
-	op.InodesFree = result.InodesFree
-	op.IoSize = result.IoSize
 	return nil
 }
 
 func (fs *grpcFs) LookUpInode(
 	ctx context.Context,
 	op *fuseops.LookUpInodeOp) error {
-	entry, err := getOrCreateInode(fs.inodes, fs.client, ctx, op.Parent, op.Name)
+	entry, err := getOrCreateInode(fs.inodes, op.Parent, op.Name)
 	if err != nil {
 		fs.logger.Printf("fs.LookUpInode for '%v' on '%v': %v", entry, op.Name, err)
 		return fuse.EIO
@@ -84,7 +67,7 @@ func (fs *grpcFs) LookUpInode(
 	}
 	outputEntry := &op.Entry
 	outputEntry.Child = entry.Id()
-	attributes, err := entry.Attributes(ctx)
+	attributes, err := entry.Attributes()
 	if err != nil {
 		fs.logger.Printf("fs.LookUpInode.Attributes for '%v' on '%v': %v", entry, op.Name, err)
 		return fuse.EIO
@@ -100,7 +83,7 @@ func (fs *grpcFs) GetInodeAttributes(
 	if !found {
 		return fuse.ENOENT
 	}
-	attributes, err := entry.(Inode).Attributes(ctx)
+	attributes, err := entry.(Inode).Attributes()
 	if err != nil {
 		fs.logger.Printf("fs.GetInodeAttributes for '%v': %v", entry, err)
 		return fuse.EIO
@@ -123,7 +106,7 @@ func (fs *grpcFs) ReadDir(
 	if !found {
 		return fuse.ENOENT
 	}
-	children, err := entry.(Inode).ListChildren(fs.inodes, ctx)
+	children, err := entry.(Inode).ListChildren(fs.inodes)
 	if err != nil {
 		fs.logger.Printf("fs.ReadDir for '%v': %v", entry, err)
 		return fuse.EIO
@@ -164,7 +147,7 @@ func (fs *grpcFs) ReadFile(
 	if !found {
 		return fuse.ENOENT
 	}
-	contents, err := entry.(Inode).Contents(ctx)
+	contents, err := entry.(Inode).Contents()
 	if err != nil {
 		fs.logger.Printf("fs.ReadFile for '%v': %v", entry, err)
 		return fuse.EIO

@@ -1,9 +1,11 @@
-// this file includes fuse-side helpers
+// place for data-side helper functions
 
 package grpcfs
 
 import (
+	"context"
 	"fmt"
+	"grpcfs/pb"
 	"os"
 	"path/filepath"
 	"sync"
@@ -20,21 +22,16 @@ var (
 	allocatedInodeId uint64 = fuseops.RootInodeID
 )
 
-func nextInodeID() (next fuseops.InodeID) {
-	nextInodeId := atomic.AddUint64(&allocatedInodeId, 1)
-	return fuseops.InodeID(nextInodeId)
-}
-
 type Inode interface {
 	Id() fuseops.InodeID
 	Path() string
 	String() string
-	Attributes() (*fuseops.InodeAttributes, error)
-	ListChildren(inodes *sync.Map) ([]*fuseutil.Dirent, error)
-	Contents() ([]byte, error)
+	Attributes(ctx context.Context) (*fuseops.InodeAttributes, error)
+	ListChildren(inodes *sync.Map, ctx context.Context) ([]*fuseutil.Dirent, error)
+	Contents(ctx context.Context) ([]byte, error)
 }
 
-func getOrCreateInode(inodes *sync.Map, parentId fuseops.InodeID, name string) (Inode, error) {
+func getOrCreateInode(inodes *sync.Map, fsClient pb.GrpcFuseClient, ctx context.Context, parentId fuseops.InodeID, name string) (Inode, error) {
 	parent, found := inodes.Load(parentId)
 	if !found {
 		return nil, nil
@@ -42,7 +39,7 @@ func getOrCreateInode(inodes *sync.Map, parentId fuseops.InodeID, name string) (
 	parentPath := parent.(Inode).Path()
 
 	path := filepath.Join(parentPath, name)
-	fileInfo, err := os.Stat(path)
+	fileInfo, err := getStat(fsClient, ctx, path)
 	if err != nil {
 		return nil, nil
 	}
@@ -56,17 +53,24 @@ func getOrCreateInode(inodes *sync.Map, parentId fuseops.InodeID, name string) (
 	return storedEntry.(Inode), nil
 }
 
+func nextInodeID() (next fuseops.InodeID) {
+	nextInodeId := atomic.AddUint64(&allocatedInodeId, 1)
+	return fuseops.InodeID(nextInodeId)
+}
+
 type inodeEntry struct {
-	id   fuseops.InodeID
-	path string
+	id     fuseops.InodeID
+	path   string
+	client pb.GrpcFuseClient
 }
 
 var _ Inode = &inodeEntry{}
 
-func NewInode(path string) (Inode, error) {
+func NewInode(path string, client pb.GrpcFuseClient) (Inode, error) {
 	return &inodeEntry{
-		id:   nextInodeID(),
-		path: path,
+		id:     nextInodeID(),
+		path:   path,
+		client: client,
 	}, nil
 }
 
@@ -82,8 +86,8 @@ func (in *inodeEntry) String() string {
 	return fmt.Sprintf("%v::%v", in.id, in.path)
 }
 
-func (in *inodeEntry) Attributes() (*fuseops.InodeAttributes, error) {
-	fileInfo, err := os.Stat(in.path)
+func (in *inodeEntry) Attributes(ctx context.Context) (*fuseops.InodeAttributes, error) {
+	fileInfo, err := getStat(in.client, ctx, in.path)
 	if err != nil {
 		return &fuseops.InodeAttributes{}, err
 	}
@@ -98,15 +102,15 @@ func (in *inodeEntry) Attributes() (*fuseops.InodeAttributes, error) {
 	}, nil
 }
 
-func (in *inodeEntry) ListChildren(inodes *sync.Map) ([]*fuseutil.Dirent, error) {
-	children, err := os.ReadDir(in.path)
+func (in *inodeEntry) ListChildren(inodes *sync.Map, ctx context.Context) ([]*fuseutil.Dirent, error) {
+	children, err := readDir(in.client, ctx, in.path)
 	if err != nil {
 		return nil, err
 	}
 	dirents := []*fuseutil.Dirent{}
 	for i, child := range children {
 
-		childInode, err := getOrCreateInode(inodes, in.id, child.Name())
+		childInode, err := getOrCreateInode(inodes, in.client, ctx, in.id, child.Name())
 		if err != nil || childInode == nil {
 			continue
 		}
@@ -130,6 +134,7 @@ func (in *inodeEntry) ListChildren(inodes *sync.Map) ([]*fuseutil.Dirent, error)
 	return dirents, nil
 }
 
-func (in *inodeEntry) Contents() ([]byte, error) {
-	return os.ReadFile(in.path)
+func (in *inodeEntry) Contents(ctx context.Context) ([]byte, error) {
+	res, err := readFile(in.client, ctx, in.path)
+	return res, err
 }

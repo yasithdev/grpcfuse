@@ -2,7 +2,7 @@ module main
 
 go 1.22.5
 
-replace grpcfs => ./grpcfs
+replace grpcfs => ../grpcfs
 
 require (
 	github.com/jacobsa/fuse v0.0.0-20240626143436-8a36813dc074
