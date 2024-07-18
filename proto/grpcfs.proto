@@ -1,0 +1,193 @@
+syntax = "proto3";
+
+package pb;
+
+option go_package="grpcfs/pb";
+
+// RPC Helper Context - Define as needed
+message RPCContext {}
+
+// Primitive
+message OpContext { uint64 FuseId = 1; uint64 Pid = 2; uint64 Uid = 3; }
+message Zone { string name = 1; int32 offset = 2; bool isDST = 3; }
+message ZoneTrans { int64 when = 1; uint32 index = 2; bool isstd = 3; bool isutc = 4; }
+
+// Internal
+message Location { string name = 1;
+	repeated Zone zone = 2;
+	repeated ZoneTrans zoneTrans = 3;
+	string extend = 4;
+	int64 cacheStart = 5;
+	int64 cacheEnd = 6;
+	Zone cacheZone = 7;
+}
+message Time {
+	uint64 wall = 1;
+	int64 ext = 2;
+	Location loc = 3;
+}
+message InodeAttributes {
+	uint64 Size = 1;
+	uint32 Nlink = 2;
+	uint32 FileMode = 3;
+	uint32 Rdev = 4;
+	Time Atime = 5;
+	Time Mtime = 6;
+	Time Ctime = 7;
+	Time Crtime = 8;
+	uint32 Uid = 9;
+	uint32 Gid = 10;
+}
+message ChildInodeEntry {
+	uint64 Child = 1;
+	uint64 Generation = 2;
+	InodeAttributes Attributes = 3;
+	Time AttributesExpiration = 4;
+	Time EntryExpiration = 5;
+}
+
+// Toplevel
+message StatFs {
+	uint32 BlockSize = 1;
+	uint64 Blocks = 2;
+    uint64 BlocksFree = 3;
+    uint64 BlocksAvailable = 4;
+	uint32 IoSize = 5;
+	uint64 Inodes = 6;
+	uint64 InodesFree = 7;
+}
+
+message LookupInode {
+	uint64 Parent = 1;
+	string Name = 2;
+	ChildInodeEntry entry = 3;
+	OpContext OpContext = 4;
+}
+
+message GetInodeAttributes {
+	uint64 Inode = 1;
+	InodeAttributes Attributes = 2;
+	Time AttributesExpiration = 3;
+	OpContext OpContext = 4;
+}
+
+message OpenDir {
+	uint64 Inode = 1;
+	uint64 Handle = 2;
+	OpContext OpContext = 3;
+	bool CacheDir = 4;
+	bool KeepCache = 5;
+}
+
+message ReadDir {
+	uint64 Inode = 1;
+	uint64 Handle = 2;
+	uint64 DirOffset = 3;
+	bytes Dst = 4;
+	int32 BytesRead = 5;
+	OpContext OpContext = 6;
+}
+
+message OpenFile {
+	uint64 Inode = 1;
+	uint64 Handle = 2;
+	bool KeepPageCache = 3;
+	bool UseDirectIO = 4;
+	uint32 OpenFlags = 5;
+	OpContext OpContext = 6;
+}
+
+message ReadFile {
+	uint64 Inode = 1;
+	uint64 Handle = 2;
+	int64 Offset = 3;
+	int64 Size = 4;
+	bytes Dst = 5;
+	repeated bytes Data = 6;
+	int32 BytesRead = 7;
+	OpContext OpContext = 8;
+}
+
+message ReleaseDirHandle {
+	uint64 Handle = 1;
+	OpContext OpContext = 2;
+}
+
+message GetXattr {
+	uint64 Inode = 1;
+	string Name = 2;
+	bytes Dst = 3;
+	int32 BytesRead = 4;
+	OpContext OpContext = 5;
+}
+
+message ListXattr {
+	uint64 Inode = 1;
+	bytes Dst = 2;
+	int32 BytesRead = 3;
+	OpContext OpContext = 4;
+}
+
+message ForgetInode {
+	uint64 Inode = 1;
+	uint64 N = 2;
+	OpContext OpContext = 3;
+}
+
+message ReleaseFileHandle {
+	uint64 Handle = 1;
+	OpContext OpContext = 2;
+}
+
+message FlushFile {
+	uint64 Inode = 1;
+	uint64 Handle = 2;
+	OpContext OpContext = 3;
+}
+
+// Request Bodies
+message StatFsReq { string Name = 1; RPCContext Context = 2; }
+message LookUpInodeReq { string Name = 1; RPCContext Context = 2; }
+message GetInodeAttributesReq { string Name = 1; RPCContext Context = 2; }
+message OpenDirReq { string Name = 1; RPCContext Context = 2; }
+message ReadDirReq { string Name = 1; RPCContext Context = 2; }
+message OpenFileReq { string Name = 1; RPCContext Context = 2; }
+message ReadFileReq { string Name = 1; RPCContext Context = 2; }
+message ReleaseDirHandleReq { string Name = 1; RPCContext Context = 2; }
+message GetXattrReq { string Name = 1; RPCContext Context = 2; }
+message ListXattrReq { string Name = 1; RPCContext Context = 2; }
+message ForgetInodeReq { string Name = 1; RPCContext Context = 2; }
+message ReleaseFileHandleReq { string Name = 1; RPCContext Context = 2; }
+message FlushFileReq { string Name = 1; RPCContext Context = 2; }
+
+// Response Bodies
+message StatFsRes { StatFs Result = 1; }
+message LookupInodeRes { LookupInode Result = 1; }
+message GetInodeAttributesRes { GetInodeAttributes Result = 1; }
+message OpenDirRes { OpenDir Result = 1; }
+message ReadDirRes { ReadDir Result = 1; }
+message OpenFileRes { OpenFile Result = 1; }
+message ReadFileRes { ReadFile Result = 1; }
+message ReleaseDirHandleRes { ReleaseDirHandle Result = 1; }
+message GetXattrRes { GetXattr Result = 1; }
+message ListXattrRes { ListXattr Result = 1; }
+message ForgetInodeRes { ForgetInode Result = 1; }
+message ReleaseFileHandleRes { ReleaseFileHandle Result = 1; }
+message FlushFileRes { FlushFile Result = 1; }
+
+// Service Definition
+service GrpcFuse {
+	rpc StatFs(StatFsReq) returns (StatFsRes) {}
+	rpc LookUpInode(LookUpInodeReq) returns (LookupInodeRes) {}
+	rpc GetInodeAttributes(GetInodeAttributesReq) returns (GetInodeAttributesRes) {}
+	rpc OpenDir(OpenDirReq) returns (OpenDirRes) {}
+	rpc ReadDir(ReadDirReq) returns (ReadDirRes) {}
+	rpc OpenFile(OpenFileReq) returns (OpenFileRes) {}
+	rpc ReadFile(ReadFileReq) returns (ReadFileRes) {}
+	rpc ReleaseDirHandle(ReleaseDirHandleReq) returns (ReleaseDirHandleRes) {}
+	rpc GetXattr(GetXattrReq) returns (GetXattrRes) {}
+	rpc ListXattr(ListXattrReq) returns (ListXattrRes) {}
+	rpc ForgetInode(ForgetInodeReq) returns (ForgetInodeRes) {}
+	rpc ReleaseFileHandle(ReleaseFileHandleReq) returns (ReleaseFileHandleRes) {}
+	rpc FlushFile(FlushFileReq) returns (FlushFileRes) {}
+}
