@@ -45,10 +45,11 @@ func FuseServer(
 
 	inodes := &sync.Map{}
 	rootInode := &inodeEntry{
-		id:   fuseops.RootInodeID,
-		path: root,
+		id:     fuseops.RootInodeID,
+		path:   root,
+		client: client,
 	}
-	inodes.Store(rootInode.Id(), root)
+	inodes.Store(rootInode.Id(), rootInode)
 	server = fuseutil.NewFileSystemServer(&grpcFs{
 		root:   root,
 		inodes: inodes,
@@ -89,7 +90,7 @@ func (fs *grpcFs) LookUpInode(
 	}
 	outputEntry := &op.Entry
 	outputEntry.Child = entry.Id()
-	attributes, err := entry.Attributes(ctx)
+	attributes, err := entry.Attributes()
 	if err != nil {
 		fs.logger.Printf("fs.LookUpInode.Attributes for '%v' on '%v': %v", entry, op.Name, err)
 		return fuse.EIO
@@ -105,7 +106,10 @@ func (fs *grpcFs) GetInodeAttributes(
 	if !found {
 		return fuse.ENOENT
 	}
-	attributes, err := entry.(Inode).Attributes(ctx)
+	defer func() {
+		fs.logger.Printf("fs.GetInodeAttributes for '%v': error", entry)
+	}()
+	attributes, err := entry.(Inode).Attributes()
 	if err != nil {
 		fs.logger.Printf("fs.GetInodeAttributes for '%v': %v", entry, err)
 		return fuse.EIO
@@ -128,7 +132,7 @@ func (fs *grpcFs) ReadDir(
 	if !found {
 		return fuse.ENOENT
 	}
-	children, err := entry.(Inode).ListChildren(fs.inodes, ctx)
+	children, err := entry.(Inode).ListChildren(fs.inodes)
 	if err != nil {
 		fs.logger.Printf("fs.ReadDir for '%v': %v", entry, err)
 		return fuse.EIO
@@ -169,7 +173,7 @@ func (fs *grpcFs) ReadFile(
 	if !found {
 		return fuse.ENOENT
 	}
-	contents, err := entry.(Inode).Contents(ctx)
+	contents, err := entry.(Inode).Contents()
 	if err != nil {
 		fs.logger.Printf("fs.ReadFile for '%v': %v", entry, err)
 		return fuse.EIO

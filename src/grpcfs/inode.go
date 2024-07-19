@@ -6,11 +6,11 @@ import (
 	"context"
 	"fmt"
 	"grpcfs/pb"
+	"log"
 	"os"
 	"path/filepath"
 	"sync"
 	"sync/atomic"
-	"syscall"
 
 	"github.com/jacobsa/fuse/fuseops"
 	"github.com/jacobsa/fuse/fuseutil"
@@ -26,12 +26,13 @@ type Inode interface {
 	Id() fuseops.InodeID
 	Path() string
 	String() string
-	Attributes(ctx context.Context) (*fuseops.InodeAttributes, error)
-	ListChildren(inodes *sync.Map, ctx context.Context) ([]*fuseutil.Dirent, error)
-	Contents(ctx context.Context) ([]byte, error)
+	Attributes() (*fuseops.InodeAttributes, error)
+	ListChildren(inodes *sync.Map) ([]*fuseutil.Dirent, error)
+	Contents() ([]byte, error)
 }
 
 func getOrCreateInode(inodes *sync.Map, fsClient pb.FuseServiceClient, ctx context.Context, parentId fuseops.InodeID, name string) (Inode, error) {
+	log.Print("getOrCreateInode called", name)
 	parent, found := inodes.Load(parentId)
 	if !found {
 		return nil, nil
@@ -43,13 +44,13 @@ func getOrCreateInode(inodes *sync.Map, fsClient pb.FuseServiceClient, ctx conte
 	if err != nil {
 		return nil, nil
 	}
-	stat, _ := fileInfo.Sys().(*syscall.Stat_t)
+	stat, _ := fileInfo.Sys().(*Sys)
 
 	inodeEntry := &inodeEntry{
 		id:   fuseops.InodeID(stat.Ino),
 		path: path,
 	}
-	storedEntry, _ := inodes.LoadOrStore(inodeEntry.id, inodeEntry)
+	storedEntry, _ := inodes.LoadOrStore(inodeEntry.id, *inodeEntry)
 	return storedEntry.(Inode), nil
 }
 
@@ -86,8 +87,8 @@ func (in *inodeEntry) String() string {
 	return fmt.Sprintf("%v::%v", in.id, in.path)
 }
 
-func (in *inodeEntry) Attributes(ctx context.Context) (*fuseops.InodeAttributes, error) {
-	fileInfo, err := getStat(in.client, ctx, in.path)
+func (in *inodeEntry) Attributes() (*fuseops.InodeAttributes, error) {
+	fileInfo, err := getStat(in.client, context.TODO(), in.path)
 	if err != nil {
 		return &fuseops.InodeAttributes{}, err
 	}
@@ -102,15 +103,15 @@ func (in *inodeEntry) Attributes(ctx context.Context) (*fuseops.InodeAttributes,
 	}, nil
 }
 
-func (in *inodeEntry) ListChildren(inodes *sync.Map, ctx context.Context) ([]*fuseutil.Dirent, error) {
-	children, err := readDir(in.client, ctx, in.path)
+func (in *inodeEntry) ListChildren(inodes *sync.Map) ([]*fuseutil.Dirent, error) {
+	children, err := readDir(in.client, context.TODO(), in.path)
 	if err != nil {
 		return nil, err
 	}
 	dirents := []*fuseutil.Dirent{}
 	for i, child := range children {
 
-		childInode, err := getOrCreateInode(inodes, in.client, ctx, in.id, child.Name())
+		childInode, err := getOrCreateInode(inodes, in.client, context.TODO(), in.id, child.Name())
 		if err != nil || childInode == nil {
 			continue
 		}
@@ -134,7 +135,7 @@ func (in *inodeEntry) ListChildren(inodes *sync.Map, ctx context.Context) ([]*fu
 	return dirents, nil
 }
 
-func (in *inodeEntry) Contents(ctx context.Context) ([]byte, error) {
-	res, err := readFile(in.client, ctx, in.path)
+func (in *inodeEntry) Contents() ([]byte, error) {
+	res, err := readFile(in.client, context.TODO(), in.path)
 	return res, err
 }

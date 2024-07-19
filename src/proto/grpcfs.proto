@@ -33,7 +33,7 @@ message FileInfo {
 	uint32 Mode = 3;
 	google.protobuf.Timestamp ModTime = 4;
 	bool IsDir = 5;
-	optional bytes Sys = 6;
+	uint64 Ino = 6;
 }
 
 message OpenedDir {

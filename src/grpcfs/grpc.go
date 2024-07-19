@@ -50,8 +50,14 @@ func (b *FileInfoBridge) IsDir() bool {
 	return b.info.IsDir
 }
 
+type Sys struct {
+	Ino uint64
+}
+
 func (b *FileInfoBridge) Sys() any {
-	return b.info.Sys
+	return &Sys{
+		Ino: b.info.Ino,
+	}
 }
 
 func getStat(fsClient pb.FuseServiceClient, ctx context.Context, path string) (fs.FileInfo, error) {
