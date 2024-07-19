@@ -9,6 +9,8 @@ import (
 	"os/signal"
 	"syscall"
 
+	"golang.org/x/sys/unix"
+
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -35,7 +37,20 @@ func (s *server) StatFs(ctx context.Context, req *pb.StatFsReq) (*pb.StatFsRes, 
 	path := req.Name
 	rpcCtx := req.Context
 	logger.Print("received valid StatFS request. ", path, rpcCtx)
-	return nil, nil
+	stat := &unix.Statfs_t{}
+	unix.Statfs(req.Name, stat)
+	res := &pb.StatFsRes{
+		Result: &pb.StatFs{
+			BlockSize:       uint32(stat.Bsize),
+			Blocks:          stat.Blocks,
+			BlocksFree:      stat.Bfree,
+			BlocksAvailable: stat.Bavail,
+			IoSize:          uint32(stat.Bsize),
+			InodesFree:      stat.Ffree,
+			Inodes:          stat.Files,
+		},
+	}
+	return res, nil
 }
 
 func (s *server) FileInfo(ctx context.Context, req *pb.FileInfoReq) (*pb.FileInfoRes, error) {

@@ -48,14 +48,14 @@ func getOrCreateInode(inodes *sync.Map, fsClient pb.FuseServiceClient, ctx conte
 		return nil, err
 	}
 	log.Print("inode.getOrCreateInode - got file stats: ", path, fileInfo)
-	stat, _ := fileInfo.Sys().(*Sys)
+	// stat, _ := fileInfo.Sys().(*Sys)
 
-	// entry, _ := NewInode(path, fsClient)
-	entry := &inodeEntry{
-		id:     fuseops.InodeID(stat.Ino),
-		path:   path,
-		client: fsClient,
-	}
+	entry, _ := NewInode(path, fsClient)
+	// entry := &inodeEntry{
+	// 	id:     fuseops.InodeID(stat.Ino),
+	// 	path:   path,
+	// 	client: fsClient,
+	// }
 	storedEntry, _ := inodes.LoadOrStore(entry.Id(), entry)
 	return storedEntry.(Inode), nil
 }
