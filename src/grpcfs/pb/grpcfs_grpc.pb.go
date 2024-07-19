@@ -19,12 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion8
 
 const (
-	FuseService_StatFs_FullMethodName   = "/pb.FuseService/StatFs"
-	FuseService_FileInfo_FullMethodName = "/pb.FuseService/FileInfo"
-	FuseService_OpenDir_FullMethodName  = "/pb.FuseService/OpenDir"
-	FuseService_OpenFile_FullMethodName = "/pb.FuseService/OpenFile"
-	FuseService_ReadDir_FullMethodName  = "/pb.FuseService/ReadDir"
-	FuseService_ReadFile_FullMethodName = "/pb.FuseService/ReadFile"
+	FuseService_StatFs_FullMethodName      = "/pb.FuseService/StatFs"
+	FuseService_FileInfo_FullMethodName    = "/pb.FuseService/FileInfo"
+	FuseService_OpenDir_FullMethodName     = "/pb.FuseService/OpenDir"
+	FuseService_OpenFile_FullMethodName    = "/pb.FuseService/OpenFile"
+	FuseService_ReadDir_FullMethodName     = "/pb.FuseService/ReadDir"
+	FuseService_ReadFile_FullMethodName    = "/pb.FuseService/ReadFile"
+	FuseService_WriteFile_FullMethodName   = "/pb.FuseService/WriteFile"
+	FuseService_SetInodeAtt_FullMethodName = "/pb.FuseService/SetInodeAtt"
 )
 
 // FuseServiceClient is the client API for FuseService service.
@@ -39,6 +41,8 @@ type FuseServiceClient interface {
 	OpenFile(ctx context.Context, in *OpenFileReq, opts ...grpc.CallOption) (*OpenFileRes, error)
 	ReadDir(ctx context.Context, in *ReadDirReq, opts ...grpc.CallOption) (*ReadDirRes, error)
 	ReadFile(ctx context.Context, in *ReadFileReq, opts ...grpc.CallOption) (*ReadFileRes, error)
+	WriteFile(ctx context.Context, in *WriteFileReq, opts ...grpc.CallOption) (*WriteFileRes, error)
+	SetInodeAtt(ctx context.Context, in *SetInodeAttReq, opts ...grpc.CallOption) (*SetInodeAttRes, error)
 }
 
 type fuseServiceClient struct {
@@ -109,6 +113,26 @@ func (c *fuseServiceClient) ReadFile(ctx context.Context, in *ReadFileReq, opts 
 	return out, nil
 }
 
+func (c *fuseServiceClient) WriteFile(ctx context.Context, in *WriteFileReq, opts ...grpc.CallOption) (*WriteFileRes, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(WriteFileRes)
+	err := c.cc.Invoke(ctx, FuseService_WriteFile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fuseServiceClient) SetInodeAtt(ctx context.Context, in *SetInodeAttReq, opts ...grpc.CallOption) (*SetInodeAttRes, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetInodeAttRes)
+	err := c.cc.Invoke(ctx, FuseService_SetInodeAtt_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FuseServiceServer is the server API for FuseService service.
 // All implementations must embed UnimplementedFuseServiceServer
 // for forward compatibility
@@ -121,6 +145,8 @@ type FuseServiceServer interface {
 	OpenFile(context.Context, *OpenFileReq) (*OpenFileRes, error)
 	ReadDir(context.Context, *ReadDirReq) (*ReadDirRes, error)
 	ReadFile(context.Context, *ReadFileReq) (*ReadFileRes, error)
+	WriteFile(context.Context, *WriteFileReq) (*WriteFileRes, error)
+	SetInodeAtt(context.Context, *SetInodeAttReq) (*SetInodeAttRes, error)
 	mustEmbedUnimplementedFuseServiceServer()
 }
 
@@ -145,6 +171,12 @@ func (UnimplementedFuseServiceServer) ReadDir(context.Context, *ReadDirReq) (*Re
 }
 func (UnimplementedFuseServiceServer) ReadFile(context.Context, *ReadFileReq) (*ReadFileRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReadFile not implemented")
+}
+func (UnimplementedFuseServiceServer) WriteFile(context.Context, *WriteFileReq) (*WriteFileRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method WriteFile not implemented")
+}
+func (UnimplementedFuseServiceServer) SetInodeAtt(context.Context, *SetInodeAttReq) (*SetInodeAttRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetInodeAtt not implemented")
 }
 func (UnimplementedFuseServiceServer) mustEmbedUnimplementedFuseServiceServer() {}
 
@@ -267,6 +299,42 @@ func _FuseService_ReadFile_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FuseService_WriteFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WriteFileReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FuseServiceServer).WriteFile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FuseService_WriteFile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FuseServiceServer).WriteFile(ctx, req.(*WriteFileReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FuseService_SetInodeAtt_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetInodeAttReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FuseServiceServer).SetInodeAtt(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FuseService_SetInodeAtt_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FuseServiceServer).SetInodeAtt(ctx, req.(*SetInodeAttReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // FuseService_ServiceDesc is the grpc.ServiceDesc for FuseService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -297,6 +365,14 @@ var FuseService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ReadFile",
 			Handler:    _FuseService_ReadFile_Handler,
+		},
+		{
+			MethodName: "WriteFile",
+			Handler:    _FuseService_WriteFile_Handler,
+		},
+		{
+			MethodName: "SetInodeAtt",
+			Handler:    _FuseService_SetInodeAtt_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

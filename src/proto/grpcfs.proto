@@ -71,6 +71,15 @@ message FileEntry {
 	OpContext OpContext = 8;
 }
 
+message InodeAtt {
+	uint64 Size = 1;
+	uint32 Nlink = 2;
+	uint32 FileMode = 3;
+	google.protobuf.Timestamp Atime = 5;
+	google.protobuf.Timestamp Mtime = 6;
+	google.protobuf.Timestamp Ctime = 7;
+}
+
 // Request Bodies
 message StatFsReq { string Name = 1; RPCContext Context = 2; }
 message FileInfoReq { string Name = 1; RPCContext Context = 2; }
@@ -78,6 +87,15 @@ message OpenDirReq { string Name = 1; RPCContext Context = 2; }
 message OpenFileReq { string Name = 1; RPCContext Context = 2; }
 message ReadDirReq { string Name = 1; RPCContext Context = 2; }
 message ReadFileReq { string Name = 1; RPCContext Context = 2; }
+message WriteFileReq { string Name = 1; RPCContext Context = 2; bytes Data = 3; int64 Offset = 4; }
+message SetInodeAttReq {
+	string Name = 1;
+	RPCContext Context = 2;
+	optional uint64 Size = 3;
+	optional uint32 FileMode = 4;
+	optional google.protobuf.Timestamp ATime = 5;
+	optional google.protobuf.Timestamp MTime = 6;
+}
 
 // Response Bodies
 message StatFsRes { StatFs Result = 1; }
@@ -86,6 +104,8 @@ message OpenDirRes { OpenedDir Result = 1; }
 message OpenFileRes { OpenedFile Result = 1; }
 message ReadDirRes { repeated DirEntry Result = 1; }
 message ReadFileRes { FileEntry Result = 1; }
+message WriteFileRes { bool Result = 1; }
+message SetInodeAttRes {InodeAtt Result = 1;}
 
 // Service Definition
 service FuseService {
@@ -95,4 +115,6 @@ service FuseService {
 	rpc OpenFile(OpenFileReq) returns (OpenFileRes) {}
 	rpc ReadDir(ReadDirReq) returns (ReadDirRes) {}
 	rpc ReadFile(ReadFileReq) returns (ReadFileRes) {}
+	rpc WriteFile(WriteFileReq) returns (WriteFileRes) {}
+	rpc SetInodeAtt(SetInodeAttReq) returns (SetInodeAttRes) {}
 }

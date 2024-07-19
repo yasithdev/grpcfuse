@@ -151,6 +151,57 @@ func (s *server) ReadFile(ctx context.Context, req *pb.ReadFileReq) (*pb.ReadFil
 	return res, nil
 }
 
+func (s *server) WriteFile(ctx context.Context, req *pb.WriteFileReq) (*pb.WriteFileRes, error) {
+	path := req.Name
+	rpcCtx := req.Context
+	data := req.Data
+	offset := req.Offset
+	// TODO properly use offset
+	logger.Print("received valid WriteFile request. ", path, rpcCtx, offset)
+	err := os.WriteFile(path, data, 0666)
+	if handleErr(err, "os.WriteFile failed") != nil {
+		return nil, err
+	}
+	res := &pb.WriteFileRes{
+		Result: true,
+	}
+	return res, nil
+}
+
+func (s *server) SetInodeAtt(ctx context.Context, req *pb.SetInodeAttReq) (*pb.SetInodeAttRes, error) {
+	path := req.Name
+	rpcCtx := req.Context
+	// updated values
+	size := req.Size
+	mode := req.FileMode
+	atime := req.ATime
+	mtime := req.MTime
+	logger.Print("received valid SetInodeAtt request. ", path, rpcCtx, size, mode, atime, mtime)
+	if size != nil {
+		os.Truncate(path, int64(*size))
+	}
+	if mode != nil {
+		os.Chmod(path, os.FileMode(*mode))
+	}
+	if (atime != nil) && (mtime != nil) {
+		os.Chtimes(path, atime.AsTime(), mtime.AsTime())
+	}
+	// once updated, get and return latest values
+	fileInfo, err := os.Stat(path)
+	if handleErr(err, "os.Stat failed") != nil {
+		return nil, err
+	}
+	res := &pb.SetInodeAttRes{
+		Result: &pb.InodeAtt{
+			Size:     uint64(fileInfo.Size()),
+			FileMode: uint32(fileInfo.Mode()),
+			Mtime:    timestamppb.New(fileInfo.ModTime()),
+			Atime:    timestamppb.New(fileInfo.ModTime()),
+		},
+	}
+	return res, nil
+}
+
 func main() {
 
 	listener, err := net.Listen("tcp", "127.0.0.1:50000")

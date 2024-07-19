@@ -5,6 +5,7 @@ package grpcfs
 import (
 	"context"
 	"log"
+	"os"
 	"sync"
 
 	pb "grpcfs/pb"
@@ -179,7 +180,7 @@ func (fs *grpcFs) ReadFile(
 	}
 	contents, err := entry.(Inode).Contents()
 	if err != nil {
-		fs.logger.Printf("fs.ReadFile for '%v': %v", entry, err)
+		fs.logger.Printf("fs.ReadFile - failed for '%v': %v", entry, err)
 		return fuse.EIO
 	}
 
@@ -192,38 +193,40 @@ func (fs *grpcFs) ReadFile(
 	return nil
 }
 
-func (fs *grpcFs) ReleaseDirHandle(
+func (fs *grpcFs) WriteFile(
 	ctx context.Context,
-	op *fuseops.ReleaseDirHandleOp) error {
+	op *fuseops.WriteFileOp) error {
+	var entry, found = fs.inodes.Load(op.Inode)
+	if !found {
+		return fuse.ENOENT
+	}
+	path := entry.(Inode).Path()
+	fs.logger.Print("fs.WriteFile - called for", path)
+	res, err := writeFile(fs.client, ctx, path, op.Data, op.Offset)
+	if !res || (err != nil) {
+		fs.logger.Printf("fs.WriteFile - failed for '%v': %v", entry, err)
+		return fuse.EIO
+	}
 	return nil
 }
 
-func (fs *grpcFs) GetXattr(
+func (fs *grpcFs) SetInodeAttributes(
 	ctx context.Context,
-	op *fuseops.GetXattrOp) error {
-	return nil
-}
-
-func (fs *grpcFs) ListXattr(
-	ctx context.Context,
-	op *fuseops.ListXattrOp) error {
-	return nil
-}
-
-func (fs *grpcFs) ForgetInode(
-	ctx context.Context,
-	op *fuseops.ForgetInodeOp) error {
-	return nil
-}
-
-func (fs *grpcFs) ReleaseFileHandle(
-	ctx context.Context,
-	op *fuseops.ReleaseFileHandleOp) error {
-	return nil
-}
-
-func (fs *grpcFs) FlushFile(
-	ctx context.Context,
-	op *fuseops.FlushFileOp) error {
+	op *fuseops.SetInodeAttributesOp) error {
+	var entry, found = fs.inodes.Load(op.Inode)
+	if !found {
+		return fuse.ENOENT
+	}
+	path := entry.(Inode).Path()
+	fs.logger.Print("fs.SetInodeAttributes - called for ", path)
+	res, err := setInodeAttributes(fs.client, ctx, path, op.Size, (*uint32)(op.Mode), op.Atime, op.Mtime)
+	if (res == nil) || (err != nil) {
+		fs.logger.Printf("fs.SetInodeAttributes - failed for '%v': %v", entry, err)
+		return fuse.EIO
+	}
+	op.Attributes.Size = res.Size
+	op.Attributes.Mode = os.FileMode(res.FileMode)
+	op.Attributes.Atime = res.Atime.AsTime()
+	op.Attributes.Mtime = res.Mtime.AsTime()
 	return nil
 }
