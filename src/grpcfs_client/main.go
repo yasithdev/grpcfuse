@@ -40,18 +40,14 @@ func main() {
 	mountPoint, err := filepath.Abs(mountPoint)
 	handleErrIfAny(err, "Invalid mount point")
 
-	servePath, err = filepath.Abs(servePath)
-	handleErrIfAny(err, "Invalid serve path")
-
 	server, err := grpcfs.FuseServer("127.0.0.1:50000", servePath, logger)
-	handleErrIfAny(err, "Error in fs server")
+	handleErrIfAny(err, "Error starting fuse server")
 
 	cfg := &fuse.MountConfig{
 		FSName:      "grpcFS",
 		Subtype:     "airavata",
 		VolumeName:  "GRPC FS - Airavata",
 		ReadOnly:    true,
-		DebugLogger: logger,
 		ErrorLogger: logger,
 	}
 	mfs, err := fuse.Mount(mountPoint, server, cfg)

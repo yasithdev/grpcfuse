@@ -6,7 +6,7 @@ import (
 	"context"
 	pb "grpcfs/pb"
 	"io/fs"
-	"time"
+	"log"
 )
 
 // getting filesystem stats
@@ -17,6 +17,9 @@ func getStatFs(fsClient pb.FuseServiceClient, ctx context.Context, root string) 
 		Context: &pb.RPCContext{},
 	}
 	res, err := fsClient.StatFs(ctx, req)
+	if err != nil {
+		return nil, err
+	}
 	raw := res.Result
 	if raw == nil {
 		return nil, ctx.Err()
@@ -26,46 +29,18 @@ func getStatFs(fsClient pb.FuseServiceClient, ctx context.Context, root string) 
 
 // getting file stats
 
-type FileInfoBridge struct {
-	info pb.FileInfo
-}
-
-func (b *FileInfoBridge) Name() string {
-	return b.info.Name
-}
-
-func (b *FileInfoBridge) Size() int64 {
-	return b.info.Size
-}
-
-func (b *FileInfoBridge) Mode() fs.FileMode {
-	return fs.FileMode(b.info.Mode)
-}
-
-func (b *FileInfoBridge) ModTime() time.Time {
-	return b.info.ModTime.AsTime()
-}
-
-func (b *FileInfoBridge) IsDir() bool {
-	return b.info.IsDir
-}
-
-type Sys struct {
-	Ino uint64
-}
-
-func (b *FileInfoBridge) Sys() any {
-	return &Sys{
-		Ino: b.info.Ino,
-	}
-}
-
 func getStat(fsClient pb.FuseServiceClient, ctx context.Context, path string) (fs.FileInfo, error) {
+	log.Print("grpc.getStat - path=", path)
 	req := &pb.FileInfoReq{
 		Name:    path,
 		Context: &pb.RPCContext{},
 	}
+	log.Print("grpc.getStat - calling fsClient.FileInfo for ", path)
 	res, err := fsClient.FileInfo(ctx, req)
+	if err != nil {
+		log.Print("grpc.getStat - fsClient.FileInfo raised error. ", err)
+		return nil, err
+	}
 	raw := res.Result
 	if raw == nil {
 		return nil, ctx.Err()
@@ -76,27 +51,6 @@ func getStat(fsClient pb.FuseServiceClient, ctx context.Context, path string) (f
 }
 
 // getting directory entries
-
-type DirEntryBridge struct {
-	info pb.DirEntry
-}
-
-func (b *DirEntryBridge) Name() string {
-	return b.info.Name
-}
-
-func (b *DirEntryBridge) IsDir() bool {
-	return b.info.IsDir
-}
-
-func (b *DirEntryBridge) Type() fs.FileMode {
-	return fs.FileMode(b.info.FileMode)
-}
-
-func (b *DirEntryBridge) Info() (fs.FileInfo, error) {
-	info := &FileInfoBridge{info: *b.info.Info}
-	return info, nil
-}
 
 func readDir(fsClient pb.FuseServiceClient, ctx context.Context, path string) ([]fs.DirEntry, error) {
 	req := &pb.ReadDirReq{

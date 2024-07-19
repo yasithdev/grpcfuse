@@ -40,6 +40,7 @@ func FuseServer(
 	client := pb.NewFuseServiceClient(conn)
 
 	if _, err = getStat(client, context.TODO(), root); err != nil {
+		logger.Print("error in getStat() for FS root", err)
 		return nil, err
 	}
 
@@ -80,13 +81,15 @@ func (fs *grpcFs) StatFS(
 func (fs *grpcFs) LookUpInode(
 	ctx context.Context,
 	op *fuseops.LookUpInodeOp) error {
+	fs.logger.Print("fs.LookUpInode - called. ", op)
 	entry, err := getOrCreateInode(fs.inodes, fs.client, ctx, op.Parent, op.Name)
-	if err != nil {
-		fs.logger.Printf("fs.LookUpInode for '%v' on '%v': %v", entry, op.Name, err)
-		return fuse.EIO
-	}
-	if entry == nil {
+	if err == nil && entry == nil {
+		fs.logger.Print("fs.LookUpInode - file does not exist. ", op.Name)
 		return fuse.ENOENT
+	}
+	if err != nil {
+		fs.logger.Printf("fs.LookUpInode - '%v' on '%v': %v", entry, op.Name, err)
+		return fuse.EIO
 	}
 	outputEntry := &op.Entry
 	outputEntry.Child = entry.Id()
@@ -106,9 +109,6 @@ func (fs *grpcFs) GetInodeAttributes(
 	if !found {
 		return fuse.ENOENT
 	}
-	defer func() {
-		fs.logger.Printf("fs.GetInodeAttributes for '%v': error", entry)
-	}()
 	attributes, err := entry.(Inode).Attributes()
 	if err != nil {
 		fs.logger.Printf("fs.GetInodeAttributes for '%v': %v", entry, err)
@@ -128,16 +128,20 @@ func (fs *grpcFs) OpenDir(
 func (fs *grpcFs) ReadDir(
 	ctx context.Context,
 	op *fuseops.ReadDirOp) error {
+	log.Print("fs.ReadDir - called. ", op.Inode)
 	var entry, found = fs.inodes.Load(op.Inode)
 	if !found {
+		log.Print("fs.ReadDir - requested dir not found. ", op.Inode)
 		return fuse.ENOENT
 	}
+	log.Print("fs.ReadDir - found requested dir. ", entry)
 	children, err := entry.(Inode).ListChildren(fs.inodes)
+	log.Print("fs.ReadDir - requested children. ", entry)
 	if err != nil {
-		fs.logger.Printf("fs.ReadDir for '%v': %v", entry, err)
+		fs.logger.Printf("fs.ReadDir - ListChildren of '%v' failed: %v", entry, err)
 		return fuse.EIO
 	}
-
+	fs.logger.Printf("fs.ReadDir - Got children of '%v': %v", entry, children)
 	if op.Offset > fuseops.DirOffset(len(children)) {
 		return nil
 	}

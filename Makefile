@@ -22,4 +22,4 @@ run_server:
 	bin/server
 
 run_client:
-	bin/client -mount tmp/ -serve data/
+	bin/client -mount $$PWD/tmp -serve $$PWD/data

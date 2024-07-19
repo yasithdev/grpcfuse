@@ -32,25 +32,31 @@ type Inode interface {
 }
 
 func getOrCreateInode(inodes *sync.Map, fsClient pb.FuseServiceClient, ctx context.Context, parentId fuseops.InodeID, name string) (Inode, error) {
-	log.Print("getOrCreateInode called", name)
+	log.Print("inode.getOrCreateInode - called. ", name)
 	parent, found := inodes.Load(parentId)
 	if !found {
+		log.Print("inode.getOrCreateInode - no parent Inode: ", parentId)
 		return nil, nil
 	}
 	parentPath := parent.(Inode).Path()
-
 	path := filepath.Join(parentPath, name)
+	log.Print("inode.getOrCreateInode - resolved path: ", path)
+
 	fileInfo, err := getStat(fsClient, ctx, path)
 	if err != nil {
-		return nil, nil
+		log.Print("inode.getOrCreateInode - no path stats: ", path)
+		return nil, err
 	}
+	log.Print("inode.getOrCreateInode - got file stats: ", path, fileInfo)
 	stat, _ := fileInfo.Sys().(*Sys)
 
-	inodeEntry := &inodeEntry{
-		id:   fuseops.InodeID(stat.Ino),
-		path: path,
+	// entry, _ := NewInode(path, fsClient)
+	entry := &inodeEntry{
+		id:     fuseops.InodeID(stat.Ino),
+		path:   path,
+		client: fsClient,
 	}
-	storedEntry, _ := inodes.LoadOrStore(inodeEntry.id, *inodeEntry)
+	storedEntry, _ := inodes.LoadOrStore(entry.Id(), entry)
 	return storedEntry.(Inode), nil
 }
 
@@ -64,8 +70,6 @@ type inodeEntry struct {
 	path   string
 	client pb.FuseServiceClient
 }
-
-var _ Inode = &inodeEntry{}
 
 func NewInode(path string, client pb.FuseServiceClient) (Inode, error) {
 	return &inodeEntry{
@@ -88,6 +92,7 @@ func (in *inodeEntry) String() string {
 }
 
 func (in *inodeEntry) Attributes() (*fuseops.InodeAttributes, error) {
+	log.Print("inodeEntry.Attributes - called. ", in.path)
 	fileInfo, err := getStat(in.client, context.TODO(), in.path)
 	if err != nil {
 		return &fuseops.InodeAttributes{}, err
@@ -104,8 +109,10 @@ func (in *inodeEntry) Attributes() (*fuseops.InodeAttributes, error) {
 }
 
 func (in *inodeEntry) ListChildren(inodes *sync.Map) ([]*fuseutil.Dirent, error) {
+	log.Print("inodeEntry.ListChildren - called. ", in.path)
 	children, err := readDir(in.client, context.TODO(), in.path)
 	if err != nil {
+		log.Print("inodeEntry.ListChildren - error in readDir. ", in.path)
 		return nil, err
 	}
 	dirents := []*fuseutil.Dirent{}
@@ -136,6 +143,7 @@ func (in *inodeEntry) ListChildren(inodes *sync.Map) ([]*fuseutil.Dirent, error)
 }
 
 func (in *inodeEntry) Contents() ([]byte, error) {
+	log.Print("inodeEntry.Contents - called. ", in.path)
 	res, err := readFile(in.client, context.TODO(), in.path)
 	return res, err
 }
