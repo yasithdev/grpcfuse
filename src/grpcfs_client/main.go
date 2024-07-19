@@ -47,7 +47,7 @@ func main() {
 		FSName:      "grpcFS",
 		Subtype:     "airavata",
 		VolumeName:  "GRPC FS - Airavata",
-		ReadOnly:    true,
+		ReadOnly:    false,
 		ErrorLogger: logger,
 	}
 	mfs, err := fuse.Mount(mountPoint, server, cfg)
